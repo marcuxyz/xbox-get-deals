@@ -19,12 +19,17 @@ const Schema = mongoose.model(date.toISOString().slice(0, 10), {
 async function main() {
   const xbox = new Xbox(defaultURL, targetURL);
   const games = await xbox.download();
-
-  games.forEach(async (g) => {
-    const schema = new Schema(g);
-    const saved = await schema.save();
-    console.log(saved)
-  });
+  for (const g of games) {
+    try {
+      await Schema.create(g);
+      console.log(`${g.title} 👌`);
+    } catch (error) {
+      console.log(`${g.title} ❌`);
+    }
+  }
+  mongoose.connection.close();
 }
 
-main().then();
+main()
+  .then(() => console.log(`we are done 😊!`))
+  .catch((err) => console.error(`error: `, err));
