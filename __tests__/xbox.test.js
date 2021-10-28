@@ -1,13 +1,28 @@
-const Xbox = require("../src/xbox")
+const { default: axios } = require("axios");
+const Xbox = require("../src/xbox");
 
-describe("", () => {
-  it("", () => {
-    const default_url = ""
-    const xbox = new Xbox(default_url)
+jest.mock("axios");
 
-    await xbox.download()
-    const deals = xbox.deals()
+describe(Xbox, () => {
+  it("get content length", async () => {
+    axios.get
+      .mockReturnValue({ data: require("./fixtures/game-info.json") })
+      .mockReturnValueOnce({ data: require("./fixtures/deal-page-1.json") })
+      .mockReturnValueOnce({ data: require("./fixtures/deal-page-2.json") });
 
-    expect(deals.length).toEqual(308)
-  })
-})
+    const defaultURL = "https://xbox.faker";
+    const targetURL = "https://xbox.faker/game/1";
+
+    const xbox = new Xbox(defaultURL, targetURL);
+    await xbox.download();
+
+    expect(xbox.games.length).toEqual(17);
+    expect(xbox.games[0]).toEqual({
+      title: "AI: THE SOMNIUM FILES",
+      poster:
+        "https://store-images.s-microsoft.com/image/apps.60995.14532753298259851.fe5f1fef-6b24-4916-ae82-ce72a7c18637.20cd68f6-8a82-4d2c-9724-30a6e7ed8940",
+      price: 147.45,
+      wholeSalePrice: 92.78,
+    });
+  });
+});
