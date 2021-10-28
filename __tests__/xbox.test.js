@@ -14,10 +14,10 @@ describe(Xbox, () => {
     const targetURL = "https://xbox.faker/game/1";
 
     const xbox = new Xbox(defaultURL, targetURL);
-    await xbox.download();
+    const deals = await xbox.download();
 
-    expect(xbox.games.length).toEqual(17);
-    expect(xbox.games[0]).toEqual({
+    expect(deals.length).toEqual(34);
+    expect(deals[0]).toEqual({
       title: "AI: THE SOMNIUM FILES",
       poster:
         "https://store-images.s-microsoft.com/image/apps.60995.14532753298259851.fe5f1fef-6b24-4916-ae82-ce72a7c18637.20cd68f6-8a82-4d2c-9724-30a6e7ed8940",

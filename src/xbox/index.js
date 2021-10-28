@@ -1,11 +1,16 @@
 const { default: axios } = require("axios");
 const Parser = require("./parser");
 
+Array.prototype.chunk = function (n) {
+  return this.slice(0, ((this.length + n - 1) / n) | 0).map((_, i) =>
+    this.slice(n * i, n * i + n)
+  );
+};
+
 class Xbox {
   constructor(defaultURL, targetURL) {
     this.defaultURL = defaultURL;
     this.targetURL = targetURL;
-    this.games = [];
   }
 
   async download() {
@@ -13,30 +18,30 @@ class Xbox {
     let totalPages = this.#paginate(r.data);
     let counter = 1;
     let ids = [];
+    let itemsPerPage = 0;
 
     while (counter <= totalPages) {
-      if (counter > 1) r = await axios.get(this.defaultURL);
+      if (counter > 1) {
+        itemsPerPage = itemsPerPage + 200;
+        r = await axios.get(this.defaultURL + `&skipitems=${itemsPerPage}`);
+      }
       r.data.Items.map((item) => ids.push(item.Id));
       counter++;
     }
 
-    this.#chunk(ids.flat(), 20).forEach(
-      async (ids) => await this.#getDeals(ids)
-    );
+    return Promise.all(
+      ids
+        .flat()
+        .chunk(20)
+        .map((ids) => this.#getDeals(ids))
+    ).then((games) => games.flat());
   }
 
   async #getDeals(ids) {
     const { data } = await axios.get(
       `${this.targetURL}${ids.join(",")}&market=BR&languages=pt-br`
     );
-    const games = data.Products.map((product) => Parser.parse(product));
-    this.games.push(...games);
-  }
-
-  #chunk(array, n) {
-    return array
-      .slice(0, ((array.length + n - 1) / n) | 0)
-      .map((_, i) => array.slice(n * i, n * i + n));
+    return data.Products.map((product) => Parser.parse(product));
   }
 
   #paginate(data) {

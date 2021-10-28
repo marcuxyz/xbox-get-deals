@@ -27,7 +27,8 @@ class Parser {
   }
 
   getWholeSalePrice(product) {
-    return this.#extractPrice(product, "WholesalePrice");
+    const price = this.#extractPrice(product, "WholesalePrice");
+    return price? price : this.getPrice(product)
   }
 
   #extractPrice(product, target) {
